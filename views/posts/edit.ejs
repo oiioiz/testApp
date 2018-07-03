@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <% include ../partials/head %>
+</head>
+<body>
+    <header>
+        <% include ../partials/header %>
+    </header>
+    <div class="posts">
+        <% include partials/top %>
+        <!-- main start -->
+
+        <div class="new">
+            <h3>New Post</h3>
+
+            <form action="/posts/<%= data._id %>?_method=put" method="post" class="posts_form">
+                <label>Title
+                    <input type="text" name="post[title]" value="<%= data.title %>">
+                </label>
+                <label>Body
+                    <textarea name="post[body]"><%= data.body %></textarea>
+                </label>
+                <button type="submit">Submit</button>
+            </form>
+            
+            <a href="/posts/<%= data._id %>"><button type="button">Back</button></a>
+        </div>
+
+        <!-- main end -->
+    </div>
+    <footer>
+        <% include ../partials/footer %>
+    </footer>
+</body>
+</html>

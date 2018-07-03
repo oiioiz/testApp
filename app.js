@@ -3,6 +3,7 @@ var path = require('path');
 var app = express();
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
+var methodOverride = require('method-override');
 
 mongoose.connect(process.env.DEV_MONGO_DB);
 var db = mongoose.connection;
@@ -44,26 +45,25 @@ var Post = mongoose.model('post', postSchema);
 app.set("view engine", 'ejs');
 app.use(express.static(path.join(__dirname, '/public')));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended:true}));
+app.use(methodOverride("_method"));
 
 // set routes
 app.get('/posts', function(req, res){
-    Post.find({}, function(err, posts){
+    Post.find({}).sort('-createdAt').exec(function(err, posts){
         if(err) return res.json({success: false, message: err});
-        res.json({success: true, data: posts});
+        res.render("posts/index", {data: posts});
     });
+});
+
+app.get('/posts/new', function(req, res){
+    res.render("posts/new");
 });
 
 app.post('/posts', function(req, res){
     Post.create(req.body.post, function(err, post){
         if(err) return res.json({success: false, message: err});
-        res.json({success: true, data: post});
-    });
-});
-
-app.get('/posts/:id', function(req, res){
-    Post.findById(req.params.id, function(err, post){
-        if(err) return res.json({success: false, message: err});
-        res.json({success: true, data: post});
+        res.redirect("/posts");
     });
 });
 
@@ -71,14 +71,28 @@ app.put('/posts/:id', function(req, res){
     req.body.post.updatedAt = Date.now();
     Post.findByIdAndUpdate(req.params.id, req.body.post, function(err, post){
         if(err) return res.json({success: false, message: err});
-        res.json({success: true, data: post._id + " updated!"});
+        res.redirect("/posts/" + req.params.id);
+    });
+});
+
+app.get('/posts/:id/edit', function(req, res){
+    Post.findById(req.params.id, function(err, post){
+        if(err) return res.json({success: false, message: err});
+        res.render("posts/edit", {data: post});
+    });
+});
+
+app.get('/posts/:id', function(req, res){
+    Post.findById(req.params.id, function(err, post){
+        if(err) return res.json({success: false, message: err});
+        res.render("posts/show", {data: post});
     });
 });
 
 app.delete('/posts/:id', function(req, res){
     Post.findByIdAndRemove(req.params.id, function(err, post){
         if(err) return res.json({success: false, message: err});
-        res.json({success: true, data: post._id + " deleted!"});
+        res.redirect('/posts');
     });
 });
 
